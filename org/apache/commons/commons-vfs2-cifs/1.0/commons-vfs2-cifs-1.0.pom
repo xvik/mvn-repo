@@ -18,6 +18,19 @@
 
         <maven.compiler.plugin.version>2.5.1</maven.compiler.plugin.version>
         <maven.source.plugin.version>2.2.1</maven.source.plugin.version>
+        <maven.github.site.plugin>0.7</maven.github.site.plugin>
+
+        <!-- github server corresponds to entry in ~/.m2/settings.xml
+        Don't forget to define there server section like this
+        <servers>
+        ...
+            <server>
+              <id>github</id>
+              <username>LOGIN</username>
+              <password>PASSWORD</password>
+            </server>
+        User must be assigned to repository to deploy artifacts -->
+        <github.global.server>github</github.global.server>
     </properties>
 
 
@@ -64,13 +77,39 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>com.github.github</groupId>
+                <artifactId>site-maven-plugin</artifactId>
+                <version>${maven.github.site.plugin}</version>
+                <configuration>
+                    <message>Maven artifacts for ${project.artifactId} ${project.version}</message>  <!-- git commit message -->
+                    <noJekyll>true</noJekyll>                                  <!-- disable webpage processing -->
+                    <merge>true</merge> <!-- to not clean repo contents on each deploy -->
+                    <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory> <!-- matches distribution management repository url above -->
+                    <branch>refs/heads/master</branch>                       <!-- remote branch name -->
+                    <includes><include>**/*</include></includes>
+                    <repositoryName>mvn-repo</repositoryName>      <!-- github repo name -->
+                    <repositoryOwner>xvik</repositoryOwner>    <!-- github username  -->
+                </configuration>
+                <executions>
+                    <!-- run site-maven-plugin's 'site' target as part of the build's normal 'deploy' phase -->
+                    <execution>
+                        <goals>
+                            <goal>site</goal>
+                        </goals>
+                        <phase>deploy</phase>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
     <distributionManagement>
         <repository>
-            <id>mvn-repo-local</id>
-            <url>file:e:\dev\projects\mvn-repo\</url>
+            <id>mvn-repo-github</id>
+            <name>Temporary Staging Repository</name>
+            <url>file://${project.build.directory}/mvn-repo</url>
         </repository>
     </distributionManagement>
 
